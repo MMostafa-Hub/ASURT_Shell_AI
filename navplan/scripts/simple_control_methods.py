@@ -91,7 +91,26 @@ class Controller:
         steer_angle: float
             Steering angle in rad
         '''
-        pass
+
+        # theta: angle of orientation
+        theta = current_yaw
+
+        # Conversion from the CG to Rear frame of refrence
+        p_rear = self.CG_to_rear(current_xy, theta)
+
+        # x_rear, y_rear
+        x_r, y_r = p_rear
+
+        # x_wayPoint, y_wayPoint
+        x_w, y_w, yaw_path = next_waypoint
+        next_way_p = np.array([x_w, y_w])
+        dif_x, dif_y = (x_w - x_r, y_w - y_r)
+
+        ld = np.linalg.norm(p_rear-next_way_p)
+        alpha = np.arctan2((dif_y), (dif_x)) - theta
+        delta = np.arctan2(2*self.L*np.sin(alpha), ld)
+
+        return delta
 
     def get_lateral_stanley(self, current_xy, current_yaw, current_speed, next_waypoint):
         '''
@@ -113,7 +132,36 @@ class Controller:
         steer_angle: float
             Steering angle in rad
         '''
-        pass
+        # theta: angle of orientation
+        theta = current_yaw
+
+        # Conversion from the CG to Rear frame of refrence
+        p_rear = self.CG_to_rear(current_xy, theta)
+
+        # x_rear, y_rear
+        x_r, y_r = p_rear
+
+        # x_wayPoint, y_wayPoint
+        x_w, y_w, yaw_path = next_waypoint
+        next_way_p = np.array([x_w, y_w])
+        dif_x, dif_y = (x_w - x_r, y_w - y_r)
+
+        ld = np.linalg.norm(p_rear-next_way_p)
+        alpha = np.arctan2((dif_y), (dif_x)) - theta
+
+        # delta: steering angle
+        x_w, y_w, delta_w = next_waypoint
+
+        cross_track_e = ld * np.sin(alpha)
+
+        # psi: heading angle
+        psi = delta_w - theta
+
+        delta = psi + \
+            np.arctan2((self.cross_e_gain*cross_track_e),
+                       current_speed+self.ks)
+
+        return delta
 
 
 controller = Controller()
