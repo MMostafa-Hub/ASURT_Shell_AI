@@ -93,28 +93,29 @@ def transition_function(p):
 # Iterative BFS
 def BFS(initial_state, goal_state):
     queue = []
-    visited = {}
-    prev = {}
+    visited = [0]*len(graph_points)
+    prev = [[0, 0]]*len(graph_points)
 
-    queue.append(initial_state)  # Enqueue(initital_state)
-    visited[initial_state] = True
+    queue.append(start_point)  # Enqueue(initital_state)
+    visited[start_point] = True
 
     # while the queue is NOT empty
     while len(queue):
-        node = queue.popleft()  # Dequeue()
+        node = queue.pop()  # Dequeue()
 
-        for adj_node, distance in transition_function(node):
+        for adj_node in adj_list[node]:
             if not visited[adj_node]:
                 visited[adj_node] = True
                 queue.append(adj_node)  # Enqueue(adj_node)
                 prev[adj_node] = node
 
     # reconstructing the path from initital_state to goal_state
-    path = []
-    goal = goal_state  # initail value
-    while goal != initial_state:  # condition
+    path = [graph_points[end_point]]  # the path starts
+    goal = end_point  # initail value
+    while goal != start_point:  # condition
 
-        path.pushleft(prev[goal])  # as the list will be inverted
+        # as the list will be inverted
+        path.insert(0, graph_points[prev[goal]])
 
         goal = prev[goal]  # increment
 
