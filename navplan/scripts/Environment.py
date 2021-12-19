@@ -87,7 +87,7 @@ def transition_function(p):
     dists = []
     for p in enumerate(neighbors):
         dists.append(np.linalg.norm(p-pi).sum())
-    return neighbors, np.array(dists)
+    return i, adj_list[i], neighbors, np.array(dists)
 
 
 # Iterative BFS
@@ -121,9 +121,84 @@ def BFS(initial_state, goal_state):
 
     return path
 
+def find_in_pq(priority_q, node):
+    for i in range(len(priority_q)):
+        if np.array_equal(priority_q[i][0], node):
+            return i
 
+    return -1
+
+
+def dist_from_parent(priority_q, node):
+    return priority_q[find_in_pq(priority_q, node)][1]
+
+
+def change_priority(priority_q, node, new_dist):
+    priority_q[find_in_pq(priority_q, node)][1] = new_dist
+
+
+def find_in_prev(prev, node):
+    for i in range(len(prev)):
+        if np.array_equal(prev[i][0], node):
+            return i
+
+    return -1
+  
+  
 def Dijkstra(initial_state, goal_state):
-    pass
+    priority_q = []
+    visited = [False]*len(graph_points)
+    prev = []
+
+    # (child, distance_from_parent, parent)
+    priority_q.append([initial_state, 0, initial_state, start_point])
+
+    node = initial_state
+    while not np.array_equal(node, goal_state):
+
+        node_index, adj_nodes, neighbors, dists = transition_function(node)
+        print(transition_function(node))
+        if not visited[node_index]:
+            visited[node_index] = True
+            for adj_node, neighbor, dist in zip(adj_nodes, list(neighbors), dists):
+
+                new_distance = dist + dist_from_parent(priority_q, node)
+                if not visited[adj_node]:
+                    if find_in_pq(priority_q, neighbor) != -1:
+
+                        old_distance = dist_from_parent(priority_q, neighbor)
+
+                        if new_distance < old_distance:
+                            change_priority(priority_q, neighbor, new_distance)
+                    else:
+                        priority_q.append(
+                            [neighbor, new_distance, node, adj_node])
+
+            prev.append(priority_q[0])
+            del priority_q[0]
+
+            # priority_q.pop()
+
+            # sorting based on the distance_from_parent
+            priority_q.sort(key=lambda x: x[1])
+
+            node = priority_q[0][0]
+
+    prev.append(priority_q[0])
+    del priority_q[0]
+
+    # reconstructing the path from initital_state to goal_state
+    path = [goal_state]  # the path starts
+    goal = goal_state  # initail value
+    while not np.array_equal(goal, initial_state):  # condition
+
+        index = find_in_prev(prev, goal)
+
+        # as the list will be inverted
+        goal = prev[index][-2]
+        path.insert(0, goal)
+
+    return path
 
 
 def A_star(initial_state, goal_state):
